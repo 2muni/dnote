@@ -1,14 +1,11 @@
 import React from 'react'
 import MainStructure from 'components/structure/MainStructure'
-import InsertForm from 'components/notes/InsertForm'
-import NoteWrapper from 'components/notes/NoteWrapper'
+import NoteContainer from 'containers/NoteContainer'
 
 const Main = () =>
 (
     <MainStructure>
-        <NoteWrapper>
-            <InsertForm />
-        </NoteWrapper>
+        <NoteContainer />
     </MainStructure>
 )
 
