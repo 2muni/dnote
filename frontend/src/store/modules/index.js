@@ -8,5 +8,6 @@ export const rootReducers = combineReducers({
 
 export const rootEpics = combineEpics(
     notesEpics.addNoteEpic,
-    notesEpics.getNotesEpic
+    notesEpics.getNotesEpic,
+    notesEpics.updateNoteEpic
 )

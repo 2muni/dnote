@@ -17,30 +17,49 @@ class NoteContainer extends Component {
         getNotes()
     }
 
-    handleChange = e => {
+    handleChange = ({ value }, isEditing) => {
         const { changeNoteInput } = this.props
-        const { value } = e.target
-        changeNoteInput({ value })
+        changeNoteInput({ value }, isEditing)
     }
 
-    handleKeyPress = e => {
+    addNote = () => {
         const { addNote } = this.props
-        e.key === 'Enter' && addNote()
+        addNote()
+    }
+
+    handleToggle = ({ id, text }) => {
+        const { toggleNote, editing } = this.props
+        if (editing.id === id) {
+            toggleNote({ id: null, text: "" })
+        }else {
+            toggleNote({ id, text })
+        }
+    }
+
+    updateNote = () => {
+        const { updateNote } = this.props
+        updateNote();
     }
 
     render() {
-        const { noteInput, error, notes } = this.props
-        const { handleChange, handleKeyPress } = this
+        const { noteInput, error, notes, editing } = this.props
+        const { handleChange, addNote, handleToggle, updateNote } = this
 
         return(
             <NoteWrapper>
                 <InsertForm
                     noteInput={noteInput}
-                    onChange={handleChange}
-                    onKeyPress={handleKeyPress}
+                    onChangeInput={handleChange}
+                    onAdd={addNote}
                     error={error}
                 />
-                <NoteList notes={notes} />
+                <NoteList
+                    notes={notes}
+                    editing={editing}
+                    onToggle={handleToggle}
+                    onChange={handleChange}
+                    onUpdate={updateNote}
+                />
             </NoteWrapper>
         )
     }
@@ -49,18 +68,25 @@ class NoteContainer extends Component {
 const mapStateToProps = state => ({
     noteInput: state.notes.noteInput,
     notes: state.notes.notes,
-    error: state.notes.error
+    error: state.notes.error,
+    editing: state.notes.editing
 })
 
 const mapDispatchToProps = dispatch => ({
-    changeNoteInput: ({ value }) => {
-        dispatch(noteActions.changeNoteInput({ value }))
+    changeNoteInput: ({ value }, isEditing) => {
+        dispatch(noteActions.changeNoteInput({ value }, isEditing))
     },
     addNote: () => {
         dispatch(noteActions.addNote())
     },
     getNotes: () => {
         dispatch(noteActions.getNotes())
+    },
+    toggleNote: ({ id, text }) => {
+        dispatch(noteActions.toggleNote({ id, text }))
+    },
+    updateNote: () => {
+        dispatch(noteActions.updateNote())
     }
 })
 
