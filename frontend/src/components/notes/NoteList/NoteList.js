@@ -2,7 +2,14 @@ import React from 'react'
 import styles from './NoteList.module.scss'
 import NoteItem from 'components/notes/NoteItem'
 
-const NoteList = ({ notes, editing, onToggle, onChange, onUpdate }) => {
+const NoteList = ({
+    notes,
+    editing,
+    onToggle,
+    onChange,
+    onUpdate,
+    onDelete
+}) => {
     const noteList = notes.map(note => (
         <NoteItem
             note={note}
@@ -11,6 +18,7 @@ const NoteList = ({ notes, editing, onToggle, onChange, onUpdate }) => {
             onToggle={onToggle}
             onChange={onChange}
             onUpdate={onUpdate}
+            onDelete={onDelete}
         />
     ))
 

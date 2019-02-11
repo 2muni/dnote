@@ -14,7 +14,9 @@ const TOGGLE_NOTE = "notes/TOGGLE_NOTE"
 const UPDATE_NOTE = "notes/UPDATE_NOTE"
 const UPDATE_NOTE_SUCCESS = "notes/UPDATE_NOTE_SUCCESS"
 const UPDATE_NOTE_FAILURE = "notes/UPDATE_NOTE_FAILURE"
-
+const DELETE_NOTE = "note/DELETE_NOTE"
+const DELETE_NOTE_SUCCESS = "note/DELETE_NOTE_SUCCESS"
+const DELETE_NOTE_FAILURE = "note/DELETE_NOTE_FAILURE"
 
 export const changeNoteInput = ({ value }, isEditing) => ({
     type: CHANGE_NOTE_INPUT,
@@ -64,6 +66,24 @@ export const updateNoteSuccess = ({ note }) => ({
 })
 export const updateNoteFailure = error => ({
     type: UPDATE_NOTE_FAILURE,
+    payload: {
+        error
+    }
+})
+export const deleteNote = ({ id }) => ({
+    type: DELETE_NOTE,
+    payload: {
+        id
+    }
+})
+export const deleteNoteSuccess = ({ id }) => ({
+    type: DELETE_NOTE_SUCCESS,
+    payload: {
+        id
+    }
+})
+export const deleteNoteFailure = error => ({
+    type: DELETE_NOTE_FAILURE,
     payload: {
         error
     }
@@ -134,6 +154,33 @@ const updateNoteEpic = (action$, state$) => {
                 catchError(error =>
                     of({
                         type: UPDATE_NOTE_FAILURE,
+                        payload: error,
+                        error: true
+                    })    
+                )
+            )
+        })
+    )
+}
+
+const deleteNoteEpic = (action$, state$) => {
+    return action$.pipe(
+        ofType(DELETE_NOTE),
+        withLatestFrom(state$),
+        mergeMap(([action, state]) => {
+            const token = localStorage.getItem("userInfo")
+                ? JSON.parse(localStorage.getItem("userInfo")).token
+                : null
+            return ajax
+            .delete(`/api/notes/${action.payload.id}`, {
+                "Content-Type": "application/json",
+                Authoriztion: `token ${token}`
+            })
+            .pipe(
+                map(response => deleteNoteSuccess({ id: action.payload.id })),
+                catchError(error => 
+                    of({
+                        type: DELETE_NOTE_FAILURE,
                         payload: error,
                         error: true
                     })    
@@ -228,6 +275,11 @@ export const notes = (state = initialState, action) => {
                 },
                 notes
             }
+        case DELETE_NOTE_SUCCESS:
+            return {
+                ...state,
+                notes: state.notes.filter(note => note.id !== action.payload.id)
+            }
         default:
             return state
     }
@@ -236,5 +288,6 @@ export const notes = (state = initialState, action) => {
 export const notesEpics = {
     addNoteEpic,
     getNotesEpic,
-    updateNoteEpic
+    updateNoteEpic,
+    deleteNoteEpic
 }

@@ -1,7 +1,14 @@
 import React from 'react'
 import styles from './NoteItem.module.scss'
 
-const NoteItem = ({ note, editing, onToggle, onChange, onUpdate }) => {
+const NoteItem = ({
+    note,
+    editing,
+    onToggle,
+    onChange,
+    onUpdate,
+    onDelete
+}) => {
     const handleToggle = () => {
         onToggle({ id: note.id, text: note.text })
     }
@@ -15,9 +22,17 @@ const NoteItem = ({ note, editing, onToggle, onChange, onUpdate }) => {
         e.key === 'Enter' && onUpdate()
     }
 
+    const handleDelete = e => {
+        e.stopPropagation()
+        onDelete({ id: note.id })
+    }
+
     return (
         <div
-            className={`${styles.note_item} ${editing.id === note.id && styles.editing}`}
+            className={`
+                ${styles.note_item}
+                ${editing.id === note.id && styles.editing}
+            `}
             onClick={handleToggle}
         >
             {editing.id === note.id ? (
@@ -32,7 +47,9 @@ const NoteItem = ({ note, editing, onToggle, onChange, onUpdate }) => {
             ) : (
                 <div className={styles.note}>{note.text}</div>  
             )}
-            <div className={styles.delete}>&times;</div>
+            <div className={styles.delete} onClick={handleDelete}>
+                &times;
+            </div>
         </div>
     )
 }

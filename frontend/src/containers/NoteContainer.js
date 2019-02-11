@@ -17,14 +17,19 @@ class NoteContainer extends Component {
         getNotes()
     }
 
-    handleChange = ({ value }, isEditing) => {
-        const { changeNoteInput } = this.props
-        changeNoteInput({ value }, isEditing)
-    }
-
     addNote = () => {
         const { addNote } = this.props
         addNote()
+    }
+
+    deleteNote = ({ id }) => {
+        const { deleteNote } = this.props
+        deleteNote({ id })
+    }
+
+    handleChange = ({ value }, isEditing) => {
+        const { changeNoteInput } = this.props
+        changeNoteInput({ value }, isEditing)
     }
 
     handleToggle = ({ id, text }) => {
@@ -43,7 +48,13 @@ class NoteContainer extends Component {
 
     render() {
         const { noteInput, error, notes, editing } = this.props
-        const { handleChange, addNote, handleToggle, updateNote } = this
+        const {
+            handleChange,
+            addNote,
+            handleToggle,
+            updateNote,
+            deleteNote
+        } = this
 
         return(
             <NoteWrapper>
@@ -59,6 +70,7 @@ class NoteContainer extends Component {
                     onToggle={handleToggle}
                     onChange={handleChange}
                     onUpdate={updateNote}
+                    onDelete={deleteNote}
                 />
             </NoteWrapper>
         )
@@ -87,6 +99,9 @@ const mapDispatchToProps = dispatch => ({
     },
     updateNote: () => {
         dispatch(noteActions.updateNote())
+    },
+    deleteNote: ({ id }) => {
+        dispatch(noteActions.deleteNote({ id }))
     }
 })
 

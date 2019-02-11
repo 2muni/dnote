@@ -9,5 +9,6 @@ export const rootReducers = combineReducers({
 export const rootEpics = combineEpics(
     notesEpics.addNoteEpic,
     notesEpics.getNotesEpic,
-    notesEpics.updateNoteEpic
+    notesEpics.updateNoteEpic,
+    notesEpics.deleteNoteEpic
 )
