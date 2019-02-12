@@ -7,16 +7,16 @@ const CHANGE_NOTE_INPUT = 'notes/CHANGE_NOTE_INPUT'
 const ADD_NOTE = 'notes/ADD_NOTE'
 const ADD_NOTE_SUCCESS = 'notes/ADD_NOTE_SUCCESS'
 const ADD_NOTE_FAILURE = 'notes/ADD_NOTE_FAILURE'
-const GET_NOTES = "notes/GET_NOTES"
-const GET_NOTES_SUCCESS = "notes/GET_NOTES_SUCCESS"
-const GET_NOTES_FAILURE = "notes/GET_NOTES_FAILURE"
-const TOGGLE_NOTE = "notes/TOGGLE_NOTE"
-const UPDATE_NOTE = "notes/UPDATE_NOTE"
-const UPDATE_NOTE_SUCCESS = "notes/UPDATE_NOTE_SUCCESS"
-const UPDATE_NOTE_FAILURE = "notes/UPDATE_NOTE_FAILURE"
-const DELETE_NOTE = "note/DELETE_NOTE"
-const DELETE_NOTE_SUCCESS = "note/DELETE_NOTE_SUCCESS"
-const DELETE_NOTE_FAILURE = "note/DELETE_NOTE_FAILURE"
+const GET_NOTES = 'notes/GET_NOTES'
+const GET_NOTES_SUCCESS = 'notes/GET_NOTES_SUCCESS'
+const GET_NOTES_FAILURE = 'notes/GET_NOTES_FAILURE'
+const TOGGLE_NOTE = 'notes/TOGGLE_NOTE'
+const UPDATE_NOTE = 'notes/UPDATE_NOTE'
+const UPDATE_NOTE_SUCCESS = 'notes/UPDATE_NOTE_SUCCESS'
+const UPDATE_NOTE_FAILURE = 'notes/UPDATE_NOTE_FAILURE'
+const DELETE_NOTE = 'note/DELETE_NOTE'
+const DELETE_NOTE_SUCCESS = 'note/DELETE_NOTE_SUCCESS'
+const DELETE_NOTE_FAILURE = 'note/DELETE_NOTE_FAILURE'
 
 export const changeNoteInput = ({ value }, isEditing) => ({
     type: CHANGE_NOTE_INPUT,
@@ -168,12 +168,12 @@ const deleteNoteEpic = (action$, state$) => {
         ofType(DELETE_NOTE),
         withLatestFrom(state$),
         mergeMap(([action, state]) => {
-            const token = localStorage.getItem("userInfo")
-                ? JSON.parse(localStorage.getItem("userInfo")).token
+            const token = localStorage.getItem('userInfo')
+                ? JSON.parse(localStorage.getItem('userInfo')).token
                 : null
             return ajax
             .delete(`/api/notes/${action.payload.id}`, {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
                 Authoriztion: `token ${token}`
             })
             .pipe(
@@ -195,11 +195,11 @@ const initialState = {
     notes: [],
     error: {
         triggered: false,
-        message: ""
+        message: ''
     },
     editing: {
         id: null,
-        text: ""
+        text: ''
     }
 }
 
@@ -224,10 +224,10 @@ export const notes = (state = initialState, action) => {
             return {
                 ...state,
                 notes: [note].concat(state.notes),
-                noteInput: "",
+                noteInput: '',
                 error: {
                     triggered: false,
-                    message: ""
+                    message: ''
                 }
             }
         case ADD_NOTE_FAILURE:
@@ -235,7 +235,7 @@ export const notes = (state = initialState, action) => {
                 ...state,
                 error: {
                     triggered: true,
-                    message: "Error! Please Try With Unempty Note"
+                    message: 'Error! Please Try With Unempty Note'
                 }
             }
         case GET_NOTES_SUCCESS: 
@@ -248,7 +248,7 @@ export const notes = (state = initialState, action) => {
                 ...state,
                 error: {
                     triggered: true,
-                    message: "Error! Please Try Again!"
+                    message: 'Error! Please Try Again!'
                 }
             }
         case TOGGLE_NOTE:
@@ -271,7 +271,7 @@ export const notes = (state = initialState, action) => {
                 ...state,
                 editing: {
                     id: null,
-                    text: ""
+                    text: ''
                 },
                 notes
             }

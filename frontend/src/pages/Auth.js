@@ -1,7 +1,12 @@
-import React from "react";
+import React from 'react'
+import AuthContainer from 'containers/AuthContainer'
 
-const Auth = () => (
-    <div>Auth Page</div>
-)
+const Auth = ({ match }) => {
+    const { kind } = match.params
 
-export default Auth
+    return (
+        <AuthContainer kind={kind}/>
+    )
+}
+
+export default Auth;
