@@ -17,4 +17,5 @@ export const rootEpics = combineEpics(
     authEpics.registerEpic,
     authEpics.checkUserEpic,
     authEpics.logoutEpic,
+    notesEpics.getMoreNotesEpic,
 )

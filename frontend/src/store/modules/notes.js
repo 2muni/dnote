@@ -1,6 +1,6 @@
 import { ajax } from 'rxjs/observable/dom/ajax'
 import { of } from 'rxjs'
-import { map, mergeMap, catchError, withLatestFrom } from 'rxjs/operators'
+import { map, mergeMap, catchError, withLatestFrom, delay } from 'rxjs/operators'
 import { ofType } from 'redux-observable'
 
 const CHANGE_NOTE_INPUT = 'notes/CHANGE_NOTE_INPUT'
@@ -17,6 +17,9 @@ const UPDATE_NOTE_FAILURE = 'notes/UPDATE_NOTE_FAILURE'
 const DELETE_NOTE = 'note/DELETE_NOTE'
 const DELETE_NOTE_SUCCESS = 'note/DELETE_NOTE_SUCCESS'
 const DELETE_NOTE_FAILURE = 'note/DELETE_NOTE_FAILURE'
+const GET_MORE_NOTES = "notes/GET_MORE_NOTES"
+const GET_MORE_NOTES_SUCCESS = "notes/GET_MORE_NOTES_SUCCESS"
+const GET_MORE_NOTES_FAILURE = "notes/GET_MORE_NOTES_FAILURE"
 
 export const changeNoteInput = ({ value }, isEditing) => ({
     type: CHANGE_NOTE_INPUT,
@@ -84,6 +87,25 @@ export const deleteNoteSuccess = ({ id }) => ({
 })
 export const deleteNoteFailure = error => ({
     type: DELETE_NOTE_FAILURE,
+    payload: {
+        error
+    }
+})
+export const getMoreNotes = lastId => ({
+    type: GET_MORE_NOTES,
+    payload: {
+        lastId
+    }
+})
+export const getMoreNotesSuccess = ({ notes, isLast }) => ({
+    type: GET_MORE_NOTES_SUCCESS,
+    payload: {
+        notes,
+        isLast
+    }
+})
+export const getMoreNotesFailure = error => ({
+    type: GET_MORE_NOTES_FAILURE,
     payload: {
         error
     }
@@ -217,6 +239,38 @@ const deleteNoteEpic = (action$, state$) => {
         })
     )
 }
+
+const getMoreNotesEpic = (action$, state$) => {
+    return action$.pipe(
+        ofType(GET_MORE_NOTES),
+        delay(750),
+        withLatestFrom(state$),
+        mergeMap(([action, state]) => {
+            const token = localStorage.getItem('userInfo')
+                ? JSON.parse(localStorage.getItem('userInfo')).token
+                : null
+            const { lastId } = action.payload.lastId
+            return ajax
+                .get(`/api/notes/next/${lastId}/`, {
+                    'Content-Type': 'application/json',
+                    Authorization: `token ${token}`
+                })
+                .pipe(
+                    map(response => {
+                        const { notes, isLast } = response.response
+                        return getMoreNotesSuccess({ notes, isLast })
+                    }),
+                    catchError(error =>
+                        of({
+                            type: GET_MORE_NOTES_FAILURE,
+                            payload: error,
+                            error: true
+                        })    
+                    )
+                )
+        })
+    )
+}
   
 const initialState = {
     noteInput: '',
@@ -228,7 +282,9 @@ const initialState = {
     editing: {
         id: null,
         text: ''
-    }
+    },
+    isLast: false,
+    isLoading: false
 }
 
 export const notes = (state = initialState, action) => {
@@ -308,6 +364,26 @@ export const notes = (state = initialState, action) => {
                 ...state,
                 notes: state.notes.filter(note => note.id !== action.payload.id)
             }
+        case GET_MORE_NOTES:
+            return {
+                ...state,
+                isLoading: true
+            }
+        case GET_MORE_NOTES_SUCCESS:
+            return {
+                ...state,
+                notes: state.notes.concat(action.payload.notes),
+                isLast: action.payload.isLast,
+                isLoading: false
+            }
+        case GET_MORE_NOTES_FAILURE:
+            return {
+                ...state,
+                error: {
+                    triggered: true,
+                    message: "ERROR WHILE LOAD MORE, TRY AGAIN"
+                }
+            }
         default:
             return state
     }
@@ -317,5 +393,6 @@ export const notesEpics = {
     addNoteEpic,
     getNotesEpic,
     updateNoteEpic,
-    deleteNoteEpic
+    deleteNoteEpic,
+    getMoreNotesEpic
 }

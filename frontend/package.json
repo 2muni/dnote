@@ -23,6 +23,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "better-react-spinkit": "^2.0.4",
     "include-media": "^1.4.9",
     "node-sass": "^4.11.0",
     "open-color": "^1.6.3",
