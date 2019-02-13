@@ -10,8 +10,21 @@ export class AuthContainer extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        const { history } = this.props
         if (prevProps.kind !== this.props.kind) {
             this.initialize()
+        }
+
+        if (prevProps.logged !== this.props.logged && this.props.logged) {
+            localStorage.setItem(
+                'userInfo',
+                JSON.stringify({
+                    id: this.props.userInfo.id,
+                    username: this.props.userInfo.username,
+                    token: this.props.userInfo.token
+                })
+            )
+            history.push('/')
         }
     }
 

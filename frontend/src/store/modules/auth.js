@@ -12,6 +12,13 @@ const LOGIN = 'auth/LOGIN'
 const LOGIN_SUCCESS = 'auth/LOGIN_SUCCESS'
 const LOGIN_FAILURE = 'auth/LOGIN_FAILURE'
 const INITIALIZE_ERROR = 'auth/INITIALIZE_ERROR'
+const CHECK_USER = 'auth/CHECK_USER'
+const CHECK_USER_SUCCESS = 'auth/CHECK_USER_SUCCESS'
+const CHECK_USER_FAILURE = 'auth/CHECK_USER_FAILURE'
+const SET_USER_TEMP = 'auth/SET_USER_TEMP'
+const LOGOUT = "auth/LOGOUT"
+const LOGOUT_SUCCESS = "auth/LOGOUT_SUCCESS"
+const LOGOUT_FAILURE = "auth/LOGOUT_FAILURE"
 
 export const initializeInput = () => ({
     type: INITIALIZE_INPUT
@@ -58,6 +65,35 @@ export const loginFailure = error => ({
 export const initializeError = () => ({
     type: INITIALIZE_ERROR
 })
+export const checkUser = () => ({
+    type: CHECK_USER
+})
+export const checkUserSuccess = () => ({
+    type: CHECK_USER_SUCCESS
+})
+export const checkUserFailure = error => ({
+    type: CHECK_USER_FAILURE,
+    payload: {
+      error
+    }
+})
+export const setUserTemp = ({ id, username, token }) => ({
+    type: SET_USER_TEMP,
+    payload: {
+      id,
+      username,
+      token
+    }
+})
+export const logout = () => ({
+    type: LOGOUT
+})
+export const logoutSuccess = () => ({
+    type: LOGOUT_SUCCESS
+})
+export const logoutFailure = () => ({
+    type: LOGOUT_FAILURE
+})
 
 const registerEpic = (action$, state$) => {
     return action$.pipe(
@@ -66,20 +102,20 @@ const registerEpic = (action$, state$) => {
         mergeMap(([action, state]) => {
             const { username, password } = state.auth.form
             return ajax
-            .post(`/api/auth/register/`, { username, password })
-            .pipe(
-                map(response => {
-                    const { user, token } = response.response
-                    return registerSuccess({ user, token })
-                }),
-                catchError(error =>
-                    of({
-                        type: REGISTER_FAILURE,
-                        payload: error,
-                        error: true
-                    })
+                .post(`/api/auth/register/`, { username, password })
+                .pipe(
+                    map(response => {
+                        const { user, token } = response.response
+                        return registerSuccess({ user, token })
+                    }),
+                    catchError(error =>
+                        of({
+                            type: REGISTER_FAILURE,
+                            payload: error,
+                            error: true
+                        })
+                    )
                 )
-            )
         })
     )
 }
@@ -91,23 +127,85 @@ const loginEpic = (action$, state$) => {
         mergeMap(([action, state]) => {
             const { username, password } = state.auth.form
             return ajax
-            .post(`/api/auth/login/`, { username, password })
-            .pipe(
-                map(response => {
-                    const { user, token } = response.response
-                    return loginSuccess({ user, token })
-                }),
-                catchError(error =>
-                    of({
-                        type: LOGIN_FAILURE,
-                        payload: error,
-                        error: true
-                    })
+                .post(`/api/auth/login/`, { username, password })
+                .pipe(
+                    map(response => {
+                        const { user, token } = response.response
+                        return loginSuccess({ user, token })
+                    }),
+                    catchError(error =>
+                        of({
+                            type: LOGIN_FAILURE,
+                            payload: error,
+                            error: true
+                        })
+                    )
                 )
-            )
         })
     )
-}  
+}
+
+const checkUserEpic = (action$, state$) => {
+    return action$.pipe(
+        ofType(CHECK_USER),
+        withLatestFrom(state$),
+        mergeMap(([action, state]) => {
+            const token = localStorage.getItem("userInfo")
+                ? JSON.parse(localStorage.getItem("userInfo")).token
+                : null
+            return ajax
+                .get(`/api/auth/user/`, {
+                        "Content-Type": "application/json",
+                        Authorization: `token ${token}`
+                    })
+                .pipe(
+                    map(response => {
+                        return checkUserSuccess()
+                    }),
+                    catchError(error =>
+                        of({
+                            type: CHECK_USER_FAILURE,
+                            payload: error,
+                            error: true
+                        })
+                    )
+                )
+        })
+    )
+}
+
+const logoutEpic = (action$, state$) => {
+    return action$.pipe(
+        ofType(LOGOUT),
+        withLatestFrom(state$),
+        mergeMap(([action, state]) => {
+            const token = localStorage.getItem('userInfo')
+                ? JSON.parse(localStorage.getItem('userInfo')).token
+                : null
+            return ajax
+                .post(
+                    `/api/auth/logout/`, {},
+                    {
+                        'Content-Type': 'application/json',
+                        Authorization: `token ${token}`
+                    }
+                )
+                .pipe(
+                    map(response => {
+                        localStorage.removeItem('userInfo')
+                        return logoutSuccess()
+                    }),
+                    catchError(error => {
+                        of({
+                            type: LOGIN_FAILURE,
+                            payload: error,
+                            error: true
+                        })
+                    })
+                )
+        })
+    )
+}
 
 const initialState = {
     form: {
@@ -216,12 +314,57 @@ export const auth = (state=initialState, action) => {
                     return {
                         ...state
                     }
-                }      
+                }
+            case CHECK_USER_SUCCESS:
+                return {
+                    ...state
+                }
+            case CHECK_USER_FAILURE:
+                return {
+                    ...state,
+                    logged: false,
+                    userInfo: {
+                        id: null,
+                        username: "",
+                        token: null
+                    }
+                }
+            case SET_USER_TEMP:
+                return {
+                    ...state,
+                    logged: true,
+                    userInfo: {
+                        id: action.payload.id,
+                        username: action.payload.username,
+                        token: action.payload.token
+                    }
+                }
+            case LOGOUT_SUCCESS:
+                return {
+                    ...state,
+                    logged: false,
+                    userInfo: {
+                        id: null,
+                        message: "",
+                        token: null
+                    }
+                }
+            case LOGOUT_FAILURE:
+                return {
+                    ...state,
+                    error: {
+                        triggered: true,
+                        message: "LOGOUT ERROR, PLEASE TRY AGAIN"
+                    }
+                }
+              
         default:
             return state
     }
 }
 export const authEpics = {
     loginEpic,
-    registerEpic
+    registerEpic,
+    checkUserEpic,
+    logoutEpic,
 }

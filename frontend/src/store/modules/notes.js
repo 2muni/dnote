@@ -94,21 +94,31 @@ const addNoteEpic = (action$, state$) => {
         ofType(ADD_NOTE),
         withLatestFrom(state$),
         mergeMap(([action, state]) => {
+            const token = localStorage.getItem('userInfo')
+                ? JSON.parse(localStorage.getItem('userInfo')).token
+                : null
             return ajax
-            .post(`/api/notes/`, { text: state.notes.noteInput })
-            .pipe(
-                map(response => {
-                    const note = response.response
-                    return addNoteSuccess(note)
-                }),
-                catchError(error =>
-                    of({
-                        type: ADD_NOTE_FAILURE,
-                        payload: error,
-                        error: true
-                    })
+                .post(
+                    `/api/notes/`,
+                    { text: state.notes.noteInput },
+                    {
+                        'Content-Type': 'application/json',
+                        Authorization: `token ${token}`
+                    }
                 )
-            )
+                .pipe(
+                    map(response => {
+                        const note = response.response
+                        return addNoteSuccess(note)
+                    }),
+                    catchError(error =>
+                        of({
+                            type: ADD_NOTE_FAILURE,
+                            payload: error,
+                            error: true
+                        })
+                    )
+                )
         })
     )
 }
@@ -118,21 +128,27 @@ const getNotesEpic = (action$, state$) => {
         ofType(GET_NOTES),
         withLatestFrom(state$),
         mergeMap(([action, state]) => {
+            const token = localStorage.getItem('userInfo')
+                ? JSON.parse(localStorage.getItem('userInfo')).token
+                : null
             return ajax
-            .get(`/api/notes/`)
-            .pipe(
-                map(response => {
-                    const notes = response.response
-                    return getNotesSuccess({ notes })
-                }),
-                catchError(error =>
-                    of({
-                        type: GET_NOTES_FAILURE,
-                        payload: error,
-                        error: true
+                .get(`/api/notes/`, {
+                        'Content-Type': 'application/json',
+                        Authorization: `token ${token}`
                     })
+                .pipe(
+                    map(response => {
+                        const notes = response.response
+                        return getNotesSuccess({ notes })
+                    }),
+                    catchError(error =>
+                        of({
+                            type: GET_NOTES_FAILURE,
+                            payload: error,
+                            error: true
+                        })
+                    )
                 )
-            )
         })
     )
 }
@@ -142,23 +158,33 @@ const updateNoteEpic = (action$, state$) => {
         ofType(UPDATE_NOTE),
         withLatestFrom(state$),
         mergeMap(([action, state]) => {
+            const token = localStorage.getItem('userInfo')
+                ? JSON.parse(localStorage.getItem('userInfo')).token
+                : null
             return ajax
-            .patch(`/api/notes/${state.notes.editing.id}/`, {
-                text: state.notes.editing.text
-            })
-            .pipe(
-                map(response => {
-                    const note = response.response
-                    return updateNoteSuccess({ note })
-                }),
-                catchError(error =>
-                    of({
-                        type: UPDATE_NOTE_FAILURE,
-                        payload: error,
-                        error: true
-                    })    
+                .patch(
+                    `/api/notes/${state.notes.editing.id}/`,
+                    {
+                        text: state.notes.editing.text
+                    },
+                    {
+                        'Content-Type': 'application/json',
+                        Authorization: `token ${token}`
+                    }
                 )
-            )
+                .pipe(
+                    map(response => {
+                        const note = response.response
+                        return updateNoteSuccess({ note })
+                    }),
+                    catchError(error =>
+                        of({
+                            type: UPDATE_NOTE_FAILURE,
+                            payload: error,
+                            error: true
+                        })    
+                    )
+                )
         })
     )
 }
@@ -172,20 +198,22 @@ const deleteNoteEpic = (action$, state$) => {
                 ? JSON.parse(localStorage.getItem('userInfo')).token
                 : null
             return ajax
-            .delete(`/api/notes/${action.payload.id}`, {
-                'Content-Type': 'application/json',
-                Authoriztion: `token ${token}`
-            })
-            .pipe(
-                map(response => deleteNoteSuccess({ id: action.payload.id })),
-                catchError(error => 
-                    of({
-                        type: DELETE_NOTE_FAILURE,
-                        payload: error,
-                        error: true
-                    })    
+                .delete(`/api/notes/${action.payload.id}`, {
+                    'Content-Type': 'application/json',
+                    Authorization: `token ${token}`
+                })
+                .pipe(
+                    map(response => {
+                        return deleteNoteSuccess({ id: action.payload.id })
+                    }),
+                    catchError(error => 
+                        of({
+                            type: DELETE_NOTE_FAILURE,
+                            payload: error,
+                            error: true
+                        })    
+                    )
                 )
-            )
         })
     )
 }
@@ -241,7 +269,7 @@ export const notes = (state = initialState, action) => {
         case GET_NOTES_SUCCESS: 
             return {
                 ...state,
-                notes: action.payload.notes
+                notes: action.payload.notes.results
             }
         case GET_NOTES_FAILURE: 
             return {

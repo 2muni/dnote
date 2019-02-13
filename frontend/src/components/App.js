@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Switch, Route } from "react-router-dom";
 import { Main, Auth, NotFound } from "pages";
+import BaseContainer from 'containers/BaseContainer'
 
 class App extends Component {
     render() {
@@ -11,6 +12,7 @@ class App extends Component {
                     <Route path="/auth/:kind" exact={true} component={Auth} />
                     <Route component={NotFound} />
                 </Switch>
+                <BaseContainer />
             </>
         );
     }

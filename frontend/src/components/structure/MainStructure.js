@@ -1,11 +1,11 @@
 import React from 'react'
-import Header from './Header'
+import HeaderContainer from 'containers/HeaderContainer'
 
 const MainStructure = ({ children }) => (
-    <div>
-        <Header />
+    <React.Fragment>
+        <HeaderContainer />
         <main>{ children }</main>
-    </div>
+    </React.Fragment>
 )
 
 export default MainStructure
