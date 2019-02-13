@@ -5,9 +5,11 @@ import NoteList from 'components/notes/NoteList'
 import NoteWrapper from 'components/notes/NoteWrapper'
 import LoadingView from "components/notes/LoadingView"
 import * as noteActions from 'store/modules/notes'
+import * as authActions from 'store/modules/auth'
 
 class NoteContainer extends Component {
     componentDidMount() {
+        this.props.initializeError();
         this.getNotes()
         window.addEventListener("scroll", this.handleScroll)
     }
@@ -146,6 +148,9 @@ const mapDispatchToProps = dispatch => ({
     },
     getMoreNotes: ({lastId}) => {
         dispatch(noteActions.getMoreNotes({lastId}))
+    },
+    initializeError: () => {
+        dispatch(authActions.initializeError())
     }
 })
 
